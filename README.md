@@ -29,9 +29,11 @@ Installing this userscript is more effective than posting "FUCK JANNIES!"
   + The mirror exists so that it's easy to post links to this userscript without getting autobanned.
   + In case you're wondering why, see [this thread](https://endchan.net/cumg/res/69.html).
   
-You can also post a message at [2chen](https://2chen.moe/tech/) to get my attention.
+You can also post a message at [2chen](https://2chen.moe/tech/1353679) to get somebody's attention.
 
 ## Log
+
+### [2022-04-26] Made to work with native extension's ThreadUpdater
 
 ### [2022-04-18] Big assist from /x/+/an/ anon
 
