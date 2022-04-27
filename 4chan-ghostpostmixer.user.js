@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://boards.4channel.org/*/thread/*
 // @match       https://boards.4chan.org/*/thread/*
-// @version     1.2.1
+// @version     1.2.2
 // @author      anon && a random husky lover from /an/
 // @grant       GM_xmlhttpRequest
 // @grant       GM.xmlHttpRequest
@@ -25,10 +25,10 @@ const template = dedent(`<div class="postContainer replyContainer {{postClass}}"
 <div id="p{{postId}}" class="post reply {{replyClass}}">
 	<div class="postInfoM mobile" id="pim{{postId}}">
 		<span class="nameBlock"><span class="name">{{authorName}}</span><br /></span>
-		<span class="dateTime postNum" data-utc="unixTime">{{formattedDate}} <a href="#p{{postId}}" title="Link to this post">No.</a><a href="javascript:quote('{{postId}}');" title="Reply to this post">{{postId}}</a></span>
+		<span class="dateTime postNum" data-utc="unixTime">{{formattedDate}}&nbsp;<a href="#p{{postId}}" title="Link to this post">No.</a><a href="javascript:quote('{{postId}}');" title="Reply to this post">{{postId}}</a></span>
 	</div>
 	<div class="postInfo desktop" id="pi{{postId}}">
-		<span class="nameBlock"><span class="name">{{authorName}}</span> </span> {{timeHtml}}
+		<span class="nameBlock"><span class="name">{{authorName}}</span> </span> {{timeHtml}}&nbsp;
 		<span class="postNum desktop"><a href="#p{{postId}}" title="Link to this post">No.</a><a href="javascript:quote('{{postId}}');" title="Reply to this post">{{postId}}</a></span>
 	</div>
 	{{fileBlock}}
@@ -123,7 +123,7 @@ function getFucking4chanTime(d) {
 	var minute = d.getMinutes();
 	var second = d.getSeconds();
 	var year = d.getFullYear();
-	return month.toString().padStart(2, '0') + "/" + day.toString().padStart(2, '0') + "/" + year.toString().padStart(2, '0') + "(" + ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()] + ")" + " " + hour.toString().padStart(2, '0') + ":" + minute.toString().padStart(2, '0') + ":" + second.toString().padStart(2, '0');
+	return month.toString().padStart(2, '0') + "/" + day.toString().padStart(2, '0') + "/" + year.toString().slice(-2) + "(" + ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()] + ")" + hour.toString().padStart(2, '0') + ":" + minute.toString().padStart(2, '0') + ":" + second.toString().padStart(2, '0');
 }
 
 function humanFileSize(size) {
@@ -272,7 +272,7 @@ async function main() {
 			await insertGhost(post, threadId);
 		}
 
-		// if we have the native 4chan extension loaded and backlinks are enabled, force a reload of all backlinks
+		// if we have the native 4chan extension loaded and backlinks are enabled, parse the backlinks for the deleted posts
 		if (unsafeWindow.Config && unsafeWindow.Config.backlinks && unsafeWindow.Parser) {
 			const strThreadId = threadId.toString();
 			for (const post of deleted) {
@@ -300,12 +300,23 @@ div.post.del {
 	background-color: #eab3b3;
 }
 
+.tomorrow div.post.ghost {
+	background-color: #282a88;
+}
+.tomorrow div.post.del {
+	background-color: #882a2e;
+}
+
 .text-muted {
     color: #6c757d!important;
 }
 
 .post-ghost {
     margin-left: 2em;
+}
+
+blockquote>span.greentext {
+    color: #789922;
 }
 
 body.interlacing-loader::before {
