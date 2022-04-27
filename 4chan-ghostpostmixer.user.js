@@ -3,19 +3,13 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://boards.4channel.org/*/thread/*
 // @match       https://boards.4chan.org/*/thread/*
-// @version     1.2.2
-// @author      anon && a random husky lover from /an/
+// @version     1.3
+// @author      anon && a random husky connoisseur from /an/
 // @grant       GM_xmlhttpRequest
 // @grant       GM.xmlHttpRequest
 // @description Interleave ghost posts from the archives into 4chan threads.  This is a prototype.
 // @noframes
 // ==/UserScript==
-
-/*
- * The idea needs to be expanded further.
- * - More boards need to be supported.
- * - It could use more error checking.
- */
 
 // Based on https://gist.github.com/g-gundam/8f9985e6aaa0dab6eecc556ddcbca370
 
@@ -105,7 +99,7 @@ function elementReady(container, element) {
 
 		new MutationObserver((_, observer) => {
 			if (container.contains(element)) {
-				console.log('element ready');
+				console.log('[GhostPostMixer-elementReady] observer reported element ready');
 				resolve(element);
 				observer.disconnect();
 			}
@@ -242,7 +236,53 @@ async function getThread(api, board, threadId) {
 	return json;
 }
 
-async function main() {
+function parseBackLinks(threadId, posts) {
+	// if we have the native 4chan extension loaded and backlinks are enabled, parse the backlinks for the deleted posts
+	if (unsafeWindow.Config && unsafeWindow.Config.backlinks && unsafeWindow.Parser) {
+		const strThreadId = threadId.toString();
+		for (const post of posts) {
+			// XXX: backlinks will be out of order for now... is it worth fixing them?
+			unsafeWindow.Parser.parseBacklinks(post.num, strThreadId)
+		}
+	}
+}
+
+function setLoader() {
+	document.body.classList.add('interlacing-loader');
+}
+
+function unsetLoader() {
+	document.body.classList.remove('interlacing-loader');
+}
+
+async function initThreadUpdatedPatch(api, board, threadId) {
+	const TUUpdate = unsafeWindow.ThreadUpdater.update;
+	unsafeWindow.ThreadUpdater.update = async function(e) {
+		TUUpdate.call(this, e);
+
+		try {
+			setLoader()
+
+			const res = await getThread(api, board, threadId);
+			if (!res[threadId]?.posts) return unsetLoader();
+
+			const ghostPosts = Object.values(res[threadId].posts).filter(p => +p.subnum && !document.getElementById(`pc${p.num}_${p.subnum}`)).sort((a, b) => +a.num - +b.num || +a.subnum - +b.subnum);
+
+			if (!ghostPosts.length) return unsetLoader();
+
+			for (const post of ghostPosts) {
+				await insertGhost(post, threadId);
+			}
+
+			console.log(`[GhostPostMixer-ThreadUpdater.update] interlaced ${ghostPosts.length} ghost posts`);
+			document.body.querySelectorAll('.gm-stats-ghost').forEach(e => {e.innerText = +e.innerText + ghostPosts.length});
+		} finally {
+			unsetLoader();
+		}
+	}
+}
+
+async function init() {
 	try {
 		// Get thread id
 		const parts = window.location.pathname.split("/");
@@ -252,8 +292,8 @@ async function main() {
 		const api = apis[boardId];
 		if (!api) throw new Error(`Unknown board: ${boardId}`);
 
-		console.log('interlacing posts');
-		document.body.classList.add('interlacing-loader');
+		console.log('[GhostPostMixer-init] interlacing posts');
+		setLoader();
 
 		// Fetch thread from archives
 		const res = await getThread(api, boardId, threadId);
@@ -267,26 +307,22 @@ async function main() {
 		for (const post of deleted) {
 			await insertDeleted(post, posts);
 		}
+		parseBackLinks(threadId, deleted);
 
 		for (const post of ghosts) {
 			await insertGhost(post, threadId);
 		}
 
-		// if we have the native 4chan extension loaded and backlinks are enabled, parse the backlinks for the deleted posts
-		if (unsafeWindow.Config && unsafeWindow.Config.backlinks && unsafeWindow.Parser) {
-			const strThreadId = threadId.toString();
-			for (const post of deleted) {
-				// XXX: backlinks will be out of order for now... is it worth fixing them?
-				unsafeWindow.Parser.parseBacklinks(post.num, strThreadId)
-			}
+		// we patch this late on purpose, in case someone presses update before we're done.
+		if (unsafeWindow.ThreadUpdater) {
+			initThreadUpdatedPatch(api, boardId, threadId);
 		}
 
-
 		// Update the thread stats with what we interlaced
-		console.log(`interlaced ${deleted.length} deleted posts and ${ghosts.length} ghost posts`);
-		document.body.querySelectorAll('.thread-stats .ts-replies').forEach(e => e.insertAdjacentElement('afterend', htmlToElement(`<span class="text-muted">&nbsp;[d: ${deleted.length}, g: ${ghosts.length}]</span>`)));
+		console.log(`[GhostPostMixer-init] interlaced ${deleted.length} deleted posts and ${ghosts.length} ghost posts`);
+		document.body.querySelectorAll('.thread-stats .ts-replies').forEach(e => e.insertAdjacentElement('afterend', htmlToElement(`<span class="gm-stats text-muted">&nbsp;[d: <span class="gm-stats-deleted">${deleted.length}</span>, g: <span class="gm-stats-ghost">${ghosts.length}</span>]</span>`)));
 	} finally {
-		document.body.classList.remove('interlacing-loader');
+		unsetLoader()
 	}
 
 }
@@ -308,24 +344,24 @@ div.post.del {
 }
 
 .text-muted {
-    color: #6c757d!important;
+	color: #6c757d!important;
 }
 
 .post-ghost {
-    margin-left: 2em;
+	margin-left: 2em;
 }
 
 blockquote>span.greentext {
-    color: #789922;
+	color: #789922;
 }
 
 body.interlacing-loader::before {
-    content: '';
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    border-bottom: 0.4rem solid red;
-    animation: loading 2s linear infinite;
+	content: '';
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	border-bottom: 0.4rem solid red;
+	animation: loading 2s linear infinite;
 }
 
 @keyframes loading {
@@ -351,9 +387,10 @@ body.interlacing-loader::before {
 	}
 }
 `;
+
 const style = document.createElement("style");
-style.type = "text/css";
+style.setAttribute('type', 'text/css')
 style.appendChild(document.createTextNode(css));
 document.head.appendChild(style);
 
-main();
+init();
