@@ -18,7 +18,7 @@ Installing this userscript is more effective than posting "FUCK JANNIES!"
   + Major desktop browsers can install [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/).
   + iOS users can install [Userscripts for Safari](https://apps.apple.com/us/app/userscripts/id1463298887).
   + Android users can install [Kiwi Browser](https://kiwibrowser.com/) and then install [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/).
-- Click the following link to [Install 4chan GhostPostMixer](https://git.coom.tech/gg1234/4chan-ghostpostmixer/raw/branch/master/4chan-ghostpostmixer.user.js)
+- Click the following link to **[Install 4chan GhostPostMixer](https://git.coom.tech/gg1234/4chan-ghostpostmixer/raw/branch/master/4chan-ghostpostmixer.user.js)**.
 
 ## Development
 
@@ -29,11 +29,9 @@ Installing this userscript is more effective than posting "FUCK JANNIES!"
   + The mirror exists so that it's easy to post links to this userscript without getting autobanned.
   + In case you're wondering why, see [this thread](https://endchan.net/cumg/res/69.html).
   
-You can also post a message at [2chen](https://2chen.moe/tech/1353679) to get somebody's attention.
+You can also post a message at [2chen](https://2chen.moe/tech/1353679) to get # 4chan GhostPostMixer
 
-## Log
-
-### [2022-04-26] Made to work with native extension's ThreadUpdater
+Interleave deleted posts and ghost posts from the archives into live 4chan
 
 ### [2022-04-18] Big assist from /x/+/an/ anon
 
