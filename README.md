@@ -8,7 +8,13 @@ Interleave deleted posts and ghost posts from the archives into live 4chan threa
 - Have you ever written a reply only to find out you've been banned?
 - Have you ever had a jannie delete every post you made after banning you?
 
-This userscript can help you and the rest of the 4chan community in these situations.  The more people use it, the less power jannies will have to silence people.
+This userscript can help you and the rest of the 4chan community in these situations.
+
+- You can still see all deleted posts in a thread as long as they were preserved in the archives.
+- You can ghostpost in the archived version of a thread.
+- As long as your post exists in the archives, it will be visible to 4chan GhostPostMixer users.
+
+**The more people use it, the less power jannies will have to silence people.**
 
 ## Installation
 
