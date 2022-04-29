@@ -22,7 +22,7 @@ This userscript can help you and the rest of the 4chan community in these situat
   + Major desktop browsers can install [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/).
   + iOS users can install [Userscripts for Safari](https://apps.apple.com/us/app/userscripts/id1463298887).
   + Android users can install [Kiwi Browser](https://kiwibrowser.com/) and then install [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/).
-- Click the following link to **[Install 4chan GhostPostMixer](https://git.coom.tech/gg1234/4chan-ghostpostmixer/raw/branch/master/4chan-ghostpostmixer.user.js)**.
+- Click the following link to **[Install 4chan GhostPostMixer](https://github.com/g-gundam/4chan-ghostpostmixer/raw/master/4chan-ghostpostmixer.user.js)**.
 
 ## Tips
 
