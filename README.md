@@ -8,9 +8,7 @@ Interleave deleted posts and ghost posts from the archives into live 4chan threa
 - Have you ever written a reply only to find out you've been banned?
 - Have you ever had a jannie delete every post you made after banning you?
 
-This userscript can help you and the rest of the 4chan community in these situations.  The more people use it, the more useful it will become, because the power of the jannie to silence people will be reduced with every installation.
-
-Installing this userscript is more effective than posting "FUCK JANNIES!"
+This userscript can help you and the rest of the 4chan community in these situations.  The more people use it, the less power jannies will have to silence people. Getting people to install this userscript is more effective than posting "FUCK JANNIES", because it tangibly reduces their power.
 
 ## Installation
 
@@ -19,6 +17,13 @@ Installing this userscript is more effective than posting "FUCK JANNIES!"
   + iOS users can install [Userscripts for Safari](https://apps.apple.com/us/app/userscripts/id1463298887).
   + Android users can install [Kiwi Browser](https://kiwibrowser.com/) and then install [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/).
 - Click the following link to **[Install 4chan GhostPostMixer](https://git.coom.tech/gg1234/4chan-ghostpostmixer/raw/branch/master/4chan-ghostpostmixer.user.js)**.
+
+## Tips
+
+These userscripts will further improve your experience in the archives.
+
+- [SpookyX](https://github.com/Fiddlekins/SpookyX) is like 4chan X but for archives.
+- More to come...
 
 ## Development
 
