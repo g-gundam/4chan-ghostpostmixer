@@ -8,7 +8,7 @@ Interleave deleted posts and ghost posts from the archives into live 4chan threa
 - Have you ever written a reply only to find out you've been banned?
 - Have you ever had a jannie delete every post you made after banning you?
 
-This userscript can help you and the rest of the 4chan community in these situations.  The more people use it, the less power jannies will have to silence people. Getting people to install this userscript is more effective than posting "FUCK JANNIES", because it tangibly reduces their power.
+This userscript can help you and the rest of the 4chan community in these situations.  The more people use it, the less power jannies will have to silence people.
 
 ## Installation
 
