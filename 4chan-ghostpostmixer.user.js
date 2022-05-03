@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://boards.4channel.org/*/thread/*
 // @match       https://boards.4chan.org/*/thread/*
-// @version     1.3
+// @version     1.3.1
 // @author      anon && a random husky connoisseur from /an/
 // @grant       GM_xmlhttpRequest
 // @grant       GM.xmlHttpRequest
@@ -47,13 +47,16 @@ const apis = turnObjectInsideOut({
 	"archived.moe": ["3", "asp", "b", "bant", "biz", "can", "ck", "cm", "cock", "con", "diy", "e", "fa", "fap", "fitlit", "gd", "h", "hc", "hm", "i", "ic", "jp", "lgbt", "lit", "mtv", "n", "news", "out", "outsoc", "p", "po", "pw", "qb", "qst", "r", "s", "sci", "soc", "spa", "t", "toy", "u", "v", "vg", "vint", "vip", "vmg", "vp", "vrpg", "vt", "w", "wg", "wsr", "xs", "y"]
 });
 
+let lastModified = 0;
+
 // utils
 // https://gist.github.com/GitHub30/59e002a5f57a4df0decbd7ac23290f77
-async function get(url) {
+async function get(url, headers) {
 	return new Promise((resolve) => {
 		GM.xmlHttpRequest({
 			method: "GET",
 			url,
+			headers,
 			onload: resolve,
 		});
 	});
@@ -225,13 +228,47 @@ async function insertDeleted(post, posts) {
 	fixBacklinks(postId);
 }
 
+function setLastModified(response) {
+	try {
+		const rawHeaders = response.responseHeaders;
+		const headers = rawHeaders.split('\r\n').reduce((acc, line) => {
+			const [key, value] = line.split(': ');
+			if (!key) return acc;
+
+			acc[key.toLowerCase()] = value;
+			return acc;
+		}, {});
+
+		const lastModifiedHeader = headers['last-modified'];
+		if (!lastModifiedHeader) return;
+
+		const lastModifiedDate = new Date(lastModifiedHeader);
+		if (isNaN(lastModifiedDate)) return;
+
+		// if we call it with the same seconds as what we got from the API, it will return the entire obj... thanks cf/fooka
+		lastModifiedDate.setSeconds(lastModifiedDate.getSeconds() + 1);
+
+		lastModified = lastModifiedDate.toUTCString();
+	} catch(e) {
+		console.error(e);
+		lastModified = 0; // reset it for safety in case of error
+	}
+}
+
 async function getThread(api, board, threadId) {
 	const url = `https://${api}/_/api/chan/thread/?board=${board}&num=${threadId}`;
 
-	const response = await get(url);
+	const headers = lastModified ? { 'if-modified-since': lastModified } : null;
+
+	const response = await get(url, headers);
+
+	if (response.status === 304) return console.log('[GhostPostMixer-getThread] not modified since', lastModified);
+
 	const json = JSON.parse(response.responseText);
 
 	if (json.error) throw new Error(json.error);
+
+	setLastModified(response);
 
 	return json;
 }
@@ -261,10 +298,10 @@ async function initThreadUpdatedPatch(api, board, threadId) {
 		TUUpdate.call(this, e);
 
 		try {
-			setLoader()
+			setLoader();
 
-			const res = await getThread(api, board, threadId);
-			if (!res[threadId]?.posts) return unsetLoader();
+			const res = await getThread(api, board, threadId, lastModified);
+			if (!res?.[threadId]?.posts) return unsetLoader();
 
 			const ghostPosts = Object.values(res[threadId].posts).filter(p => +p.subnum && !document.getElementById(`pc${p.num}_${p.subnum}`)).sort((a, b) => +a.num - +b.num || +a.subnum - +b.subnum);
 
@@ -274,7 +311,7 @@ async function initThreadUpdatedPatch(api, board, threadId) {
 				await insertGhost(post, threadId);
 			}
 
-			console.log(`[GhostPostMixer-ThreadUpdater.update] interlaced ${ghostPosts.length} ghost posts`);
+			console.log(`[GhostPostMixer-ThreadUpdater.update] interleaved ${ghostPosts.length} ghost posts`);
 			document.body.querySelectorAll('.gm-stats-ghost').forEach(e => {e.innerText = +e.innerText + ghostPosts.length});
 		} finally {
 			unsetLoader();
@@ -292,12 +329,12 @@ async function init() {
 		const api = apis[boardId];
 		if (!api) throw new Error(`Unknown board: ${boardId}`);
 
-		console.log('[GhostPostMixer-init] interlacing posts');
+		console.log('[GhostPostMixer-init] interleaving posts');
 		setLoader();
 
 		// Fetch thread from archives
 		const res = await getThread(api, boardId, threadId);
-		if (!res[threadId]?.posts) throw new Error(`No posts found for thread ${threadId}`);
+		if (!res?.[threadId]?.posts) throw new Error(`No posts found for thread ${threadId}`);
 
 		const posts = Object.values(res[threadId].posts).sort((a, b) => +a.num - +b.num || +a.subnum - +b.subnum); // this sorting may be useless, but better be safe than sorry
 
@@ -318,8 +355,8 @@ async function init() {
 			initThreadUpdatedPatch(api, boardId, threadId);
 		}
 
-		// Update the thread stats with what we interlaced
-		console.log(`[GhostPostMixer-init] interlaced ${deleted.length} deleted posts and ${ghosts.length} ghost posts`);
+		// Update the thread stats with what we interleaved
+		console.log(`[GhostPostMixer-init] interleaved ${deleted.length} deleted posts and ${ghosts.length} ghost posts`);
 		document.body.querySelectorAll('.thread-stats .ts-replies').forEach(e => e.insertAdjacentElement('afterend', htmlToElement(`<span class="gm-stats text-muted">&nbsp;[d: <span class="gm-stats-deleted">${deleted.length}</span>, g: <span class="gm-stats-ghost">${ghosts.length}</span>]</span>`)));
 	} finally {
 		unsetLoader()
